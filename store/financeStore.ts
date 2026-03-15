@@ -19,12 +19,31 @@ export interface RecurringItem {
   endYear?: number;
 }
 
+export interface AISettings {
+  apiKey: string;
+  provider: 'gemini' | 'lmstudio';
+  baseUrl: string;
+  model: string;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model' | 'assistant' | 'system';
+  content: string;
+}
+
 class FinanceStore {
   private transactions: Transaction[] = [];
   private recurring: RecurringItem[] = [];
   private listeners: (() => void)[] = [];
   private payDay: number = 1;
   private theme: 'light' | 'dark' | 'auto' = 'auto';
+  private aiSettings: AISettings = {
+    apiKey: '',
+    provider: 'gemini',
+    baseUrl: 'http://localhost:1234/v1',
+    model: 'gemini-1.5-flash',
+  };
+  private chatHistory: ChatMessage[] = [];
 
   constructor() {
     this.loadData();
@@ -36,10 +55,15 @@ class FinanceStore {
       const recData = await AsyncStorage.getItem('recurring');
       const payDayData = await AsyncStorage.getItem('payDay');
       const themeData = await AsyncStorage.getItem('theme');
+      const aiData = await AsyncStorage.getItem('aiSettings');
+      const chatData = await AsyncStorage.getItem('chatHistory');
+      
       if (transData) this.transactions = JSON.parse(transData);
       if (recData) this.recurring = JSON.parse(recData);
       if (payDayData) this.payDay = parseInt(payDayData);
       if (themeData) this.theme = themeData as 'light' | 'dark' | 'auto';
+      if (aiData) this.aiSettings = JSON.parse(aiData);
+      if (chatData) this.chatHistory = JSON.parse(chatData);
       this.notify();
     } catch (e) {
       console.error('Error loading data', e);
@@ -52,6 +76,8 @@ class FinanceStore {
       await AsyncStorage.setItem('recurring', JSON.stringify(this.recurring));
       await AsyncStorage.setItem('payDay', this.payDay.toString());
       await AsyncStorage.setItem('theme', this.theme);
+      await AsyncStorage.setItem('aiSettings', JSON.stringify(this.aiSettings));
+      await AsyncStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
     } catch (e) {
       console.error('Error saving data', e);
     }
@@ -79,10 +105,11 @@ class FinanceStore {
 
   async clearAllData() {
     try {
-      await AsyncStorage.multiRemove(['transactions', 'recurring', 'payDay']);
+      await AsyncStorage.multiRemove(['transactions', 'recurring', 'payDay', 'aiSettings', 'chatHistory']);
       this.transactions = [];
       this.recurring = [];
       this.payDay = 1;
+      this.chatHistory = [];
       this.notify();
     } catch (e) {
       console.error('Error clearing data', e);
@@ -248,6 +275,68 @@ class FinanceStore {
         }
     }
     return history;
+  }
+
+  // AI Methods
+  getAiSettings() {
+    return this.aiSettings;
+  }
+
+  updateAiSettings(settings: Partial<AISettings>) {
+    this.aiSettings = { ...this.aiSettings, ...settings };
+    this.saveData();
+    this.notify();
+  }
+
+  getChatHistory() {
+    return this.chatHistory;
+  }
+
+  addChatMessage(msg: ChatMessage) {
+    this.chatHistory = [...this.chatHistory, msg];
+    // Keep last 50 messages
+    if (this.chatHistory.length > 50) this.chatHistory.shift();
+    this.saveData();
+    this.notify();
+  }
+
+  clearChat() {
+    this.chatHistory = [];
+    this.saveData();
+    this.notify();
+  }
+
+  getAIDataContext() {
+    const current = this.getCurrentMonthData();
+    const history = this.getPastMonthsHistory();
+    const recurring = this.getRecurring();
+
+    return `
+Eres un asistente financiero personal experto, amable y motivador. 
+Tu objetivo es ayudar al usuario a entender sus finanzas y ahorrar.
+Habla siempre en español, de forma cercana pero profesional.
+
+DATOS ACTUALES DEL CICLO:
+- Periodo: ${current.cycleStart.toLocaleDateString()} al ${current.cycleEnd.toLocaleDateString()}
+- Ingresos totales: ${current.incomeTotal}€
+- Gastos totales: ${current.expenseTotal}€
+- Balance actual: ${current.available}€
+
+MOVIMIENTOS RECIENTES:
+${current.movements.slice(0, 15).map(m => `- ${new Date(m.date).toLocaleDateString()}: ${m.title} (${m.type === 'income' ? '+' : '-'}${m.amount}€)`).join('\n')}
+
+GASTOS/INGRESOS RECURRENTES:
+${recurring.map(r => `- ${r.title}: ${r.amount}€ (Día ${r.day})`).join('\n')}
+
+HISTORIAL DE MESES PASADOS:
+${history.map(h => `- ${h.month} ${h.year}: ${h.balance}€`).join('\n')}
+
+INSTRUCCIONES:
+1. Responde preguntas sobre los datos proporcionados.
+2. Si el usuario malgasta, identifícalo basándote en los títulos de sus gastos.
+3. Da consejos concretos de ahorro.
+4. Si no sabes algo, admítelo.
+`;
   }
 }
 

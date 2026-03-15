@@ -148,6 +148,21 @@ export default function RecurringScreen() {
           />
         </View>
 
+        {/* Configuración de IA */}
+        <TouchableOpacity 
+          style={[styles.settingsCard, dynamicStyles.card]}
+          onPress={() => router.push('/ai-config')}
+        >
+          <View style={[styles.settingsIcon, { backgroundColor: 'rgba(99, 102, 241, 0.1)' }]}>
+             <IconSymbol name="sparkles" size={20} color="#6366F1" />
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <ThemedText style={[styles.settingsLabel, dynamicStyles.textMain]}>Configurar Asistente IA</ThemedText>
+            <ThemedText style={styles.settingsSub}>API Keys, proveedores y modelos</ThemedText>
+          </View>
+          <IconSymbol name="chevron.right" size={20} color="#94A3B8" />
+        </TouchableOpacity>
+
         {showAdd && (
           <View style={[styles.addForm, dynamicStyles.card]}>
             <View style={[styles.typeSelector, { backgroundColor: isDark ? '#0F172A' : '#F1F5F9' }]}>
