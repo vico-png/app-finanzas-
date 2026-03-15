@@ -13,6 +13,43 @@ export default function AIConfigScreen() {
   const isDark = colorScheme === 'dark';
   
   const [settings, setSettings] = useState<AISettings>(store.getAiSettings());
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const fetchModels = async () => {
+    if (settings.provider === 'gemini' && !settings.apiKey) {
+      Alert.alert('Error', 'Introduce una API Key primero');
+      return;
+    }
+
+    setIsFetching(true);
+    try {
+      let models: string[] = [];
+      if (settings.provider === 'gemini') {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${settings.apiKey}`);
+        const data = await response.json();
+        if (data.models) {
+          models = data.models
+            .filter((m: any) => m.supportedGenerationMethods.includes('generateContent'))
+            .map((m: any) => m.name.replace('models/', ''));
+        }
+      } else {
+        const response = await fetch(`${settings.baseUrl}/models`);
+        const data = await response.json();
+        if (data.data) {
+          models = data.data.map((m: any) => m.id);
+        }
+      }
+      setAvailableModels(models);
+      if (models.length > 0 && !models.includes(settings.model)) {
+          // No auto-set to avoid overwriting preferred defaults unless necessary
+      }
+    } catch (e) {
+      Alert.alert('Error', 'No se pudieron recuperar los modelos. Verifica la API Key o conexión.');
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const handleSave = () => {
     store.updateAiSettings(settings);
@@ -90,14 +127,34 @@ export default function AIConfigScreen() {
             </>
           )}
 
-          <ThemedText style={[styles.label, dynamicStyles.textSub]}>Modelo</ThemedText>
-          <TextInput
-            style={[styles.input, dynamicStyles.inputBg]}
-            value={settings.model}
-            onChangeText={(v) => setSettings({...settings, model: v})}
-            placeholder="ej: gemini-1.5-flash"
-            placeholderTextColor="#94A3B8"
-          />
+          <View style={styles.modelHeader}>
+            <ThemedText style={[styles.label, dynamicStyles.textSub]}>Modelo</ThemedText>
+            <TouchableOpacity onPress={fetchModels} disabled={isFetching}>
+              <ThemedText style={styles.fetchText}>{isFetching ? 'Cargando...' : 'Actualizar lista'}</ThemedText>
+            </TouchableOpacity>
+          </View>
+          
+          {availableModels.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.modelSelector}>
+                {availableModels.map((m) => (
+                    <TouchableOpacity 
+                        key={m} 
+                        style={[styles.modelBadge, settings.model === m && styles.modelBadgeActive]}
+                        onPress={() => setSettings({...settings, model: m})}
+                    >
+                        <ThemedText style={[styles.modelBadgeText, settings.model === m && styles.textWhite]}>{m}</ThemedText>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+          ) : (
+            <TextInput
+              style={[styles.input, dynamicStyles.inputBg]}
+              value={settings.model}
+              onChangeText={(v) => setSettings({...settings, model: v})}
+              placeholder="ej: gemini-2.0-flash"
+              placeholderTextColor="#94A3B8"
+            />
+          )}
 
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
             <ThemedText style={styles.saveBtnText}>Guardar Configuración</ThemedText>
@@ -230,5 +287,37 @@ const styles = StyleSheet.create({
     color: '#6366F1',
     fontWeight: '700',
     fontSize: 14,
-  }
+  },
+  modelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginTop: 15,
+  },
+  fetchText: {
+    fontSize: 12,
+    color: '#6366F1',
+    fontWeight: '700',
+  },
+  modelSelector: {
+    marginVertical: 10,
+  },
+  modelBadge: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  modelBadgeActive: {
+    backgroundColor: '#6366F1',
+    borderColor: '#6366F1',
+  },
+  modelBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
 });
