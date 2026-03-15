@@ -50,7 +50,10 @@ export default function ModalScreen() {
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Selector de Tipo */}
           <View style={[styles.typeSelector, dynamicStyles.selectorBg]}>
             <TouchableOpacity 

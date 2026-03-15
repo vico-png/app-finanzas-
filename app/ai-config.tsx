@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, View, ScrollView, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, View, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -69,106 +69,114 @@ export default function AIConfigScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, dynamicStyles.container]}>
-      <View style={[styles.header, dynamicStyles.header]}>
-        <TouchableOpacity onPress={() => router.back()} style={[styles.closeButton, dynamicStyles.iconBg]}>
-          <IconSymbol name="plus" size={24} color="#64748B" style={{ transform: [{ rotate: '45deg' }] }} />
-        </TouchableOpacity>
-        <ThemedText style={[styles.title, dynamicStyles.textMain]}>Configurar IA</ThemedText>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.infoCard, { backgroundColor: '#6366F1' }]}>
-          <IconSymbol name="sparkles" size={32} color="white" />
-          <ThemedText style={styles.infoTitle}>Conecta tu Cerebro</ThemedText>
-          <ThemedText style={styles.infoDesc}>
-            Para usar el chat, necesitas una API Key de Google Gemini (gratis en Google AI Studio) o un servidor local como LMStudio.
-          </ThemedText>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      style={{ flex: 1 }}
+    >
+      <ThemedView style={[styles.container, dynamicStyles.container]}>
+        <View style={[styles.header, dynamicStyles.header]}>
+          <TouchableOpacity onPress={() => router.back()} style={[styles.closeButton, dynamicStyles.iconBg]}>
+            <IconSymbol name="plus" size={24} color="#64748B" style={{ transform: [{ rotate: '45deg' }] }} />
+          </TouchableOpacity>
+          <ThemedText style={[styles.title, dynamicStyles.textMain]}>Configurar IA</ThemedText>
+          <View style={{ width: 40 }} />
         </View>
 
-        <View style={[styles.section, dynamicStyles.card]}>
-          <ThemedText style={[styles.sectionTitle, dynamicStyles.textMain]}>Proveedor</ThemedText>
-          <View style={styles.providerRow}>
-            <TouchableOpacity 
-              style={[styles.providerBtn, settings.provider === 'gemini' && styles.providerActive]}
-              onPress={() => setSettings({...settings, provider: 'gemini', model: 'gemini-1.5-flash'})}
-            >
-              <ThemedText style={[styles.providerText, settings.provider === 'gemini' && styles.textWhite]}>Google Gemini</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.providerBtn, settings.provider === 'lmstudio' && styles.providerActive]}
-              onPress={() => setSettings({...settings, provider: 'lmstudio', model: 'model-identifier'})}
-            >
-              <ThemedText style={[styles.providerText, settings.provider === 'lmstudio' && styles.textWhite]}>LMStudio / Local</ThemedText>
-            </TouchableOpacity>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={[styles.infoCard, { backgroundColor: '#6366F1' }]}>
+            <IconSymbol name="sparkles" size={32} color="white" />
+            <ThemedText style={styles.infoTitle}>Conecta tu Cerebro</ThemedText>
+            <ThemedText style={styles.infoDesc}>
+              Para usar el chat, necesitas una API Key de Google Gemini (gratis en Google AI Studio) o un servidor local como LMStudio.
+            </ThemedText>
           </View>
 
-          <ThemedText style={[styles.label, dynamicStyles.textSub]}>API Key (Gemini)</ThemedText>
-          <TextInput
-            style={[styles.input, dynamicStyles.inputBg]}
-            value={settings.apiKey}
-            onChangeText={(v) => setSettings({...settings, apiKey: v})}
-            placeholder="Introduce tu API Key..."
-            placeholderTextColor="#94A3B8"
-            secureTextEntry
-          />
+          <View style={[styles.section, dynamicStyles.card]}>
+            <ThemedText style={[styles.sectionTitle, dynamicStyles.textMain]}>Proveedor</ThemedText>
+            <View style={styles.providerRow}>
+              <TouchableOpacity 
+                style={[styles.providerBtn, settings.provider === 'gemini' && styles.providerActive]}
+                onPress={() => setSettings({...settings, provider: 'gemini', model: 'gemini-1.5-flash'})}
+              >
+                <ThemedText style={[styles.providerText, settings.provider === 'gemini' && styles.textWhite]}>Google Gemini</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.providerBtn, settings.provider === 'lmstudio' && styles.providerActive]}
+                onPress={() => setSettings({...settings, provider: 'lmstudio', model: 'model-identifier'})}
+              >
+                <ThemedText style={[styles.providerText, settings.provider === 'lmstudio' && styles.textWhite]}>LMStudio / Local</ThemedText>
+              </TouchableOpacity>
+            </View>
 
-          {settings.provider === 'lmstudio' && (
-            <>
-              <ThemedText style={[styles.label, dynamicStyles.textSub]}>Base URL</ThemedText>
-              <TextInput
-                style={[styles.input, dynamicStyles.inputBg]}
-                value={settings.baseUrl}
-                onChangeText={(v) => setSettings({...settings, baseUrl: v})}
-                placeholder="http://192.168.1.XX:1234/v1"
-                placeholderTextColor="#94A3B8"
-              />
-            </>
-          )}
-
-          <View style={styles.modelHeader}>
-            <ThemedText style={[styles.label, dynamicStyles.textSub]}>Modelo</ThemedText>
-            <TouchableOpacity onPress={fetchModels} disabled={isFetching}>
-              <ThemedText style={styles.fetchText}>{isFetching ? 'Cargando...' : 'Actualizar lista'}</ThemedText>
-            </TouchableOpacity>
-          </View>
-          
-          {availableModels.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.modelSelector}>
-                {availableModels.map((m) => (
-                    <TouchableOpacity 
-                        key={m} 
-                        style={[styles.modelBadge, settings.model === m && styles.modelBadgeActive]}
-                        onPress={() => setSettings({...settings, model: m})}
-                    >
-                        <ThemedText style={[styles.modelBadgeText, settings.model === m && styles.textWhite]}>{m}</ThemedText>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-          ) : (
+            <ThemedText style={[styles.label, dynamicStyles.textSub]}>API Key (Gemini)</ThemedText>
             <TextInput
               style={[styles.input, dynamicStyles.inputBg]}
-              value={settings.model}
-              onChangeText={(v) => setSettings({...settings, model: v})}
-              placeholder="ej: gemini-2.0-flash"
+              value={settings.apiKey}
+              onChangeText={(v) => setSettings({...settings, apiKey: v})}
+              placeholder="Introduce tu API Key..."
               placeholderTextColor="#94A3B8"
+              secureTextEntry
             />
-          )}
 
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-            <ThemedText style={styles.saveBtnText}>Guardar Configuración</ThemedText>
+            {settings.provider === 'lmstudio' && (
+              <>
+                <ThemedText style={[styles.label, dynamicStyles.textSub]}>Base URL</ThemedText>
+                <TextInput
+                  style={[styles.input, dynamicStyles.inputBg]}
+                  value={settings.baseUrl}
+                  onChangeText={(v) => setSettings({...settings, baseUrl: v})}
+                  placeholder="http://192.168.1.XX:1234/v1"
+                  placeholderTextColor="#94A3B8"
+                />
+              </>
+            )}
+
+            <View style={styles.modelHeader}>
+              <ThemedText style={[styles.label, dynamicStyles.textSub]}>Modelo</ThemedText>
+              <TouchableOpacity onPress={fetchModels} disabled={isFetching}>
+                <ThemedText style={styles.fetchText}>{isFetching ? 'Cargando...' : 'Actualizar lista'}</ThemedText>
+              </TouchableOpacity>
+            </View>
+            
+            {availableModels.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.modelSelector}>
+                  {availableModels.map((m) => (
+                      <TouchableOpacity 
+                          key={m} 
+                          style={[styles.modelBadge, settings.model === m && styles.modelBadgeActive]}
+                          onPress={() => setSettings({...settings, model: m})}
+                      >
+                          <ThemedText style={[styles.modelBadgeText, settings.model === m && styles.textWhite]}>{m}</ThemedText>
+                      </TouchableOpacity>
+                  ))}
+              </ScrollView>
+            ) : (
+              <TextInput
+                style={[styles.input, dynamicStyles.inputBg]}
+                value={settings.model}
+                onChangeText={(v) => setSettings({...settings, model: v})}
+                placeholder="ej: gemini-2.0-flash"
+                placeholderTextColor="#94A3B8"
+              />
+            )}
+
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+              <ThemedText style={styles.saveBtnText}>Guardar Configuración</ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.helpLink} 
+            onPress={() => Alert.alert('Ayuda', 'Puedes conseguir una API Key gratuita en aistudio.google.com')}
+          >
+            <ThemedText style={styles.helpText}>¿Cómo consigo una API Key?</ThemedText>
           </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity 
-          style={styles.helpLink} 
-          onPress={() => Alert.alert('Ayuda', 'Puedes conseguir una API Key gratuita en aistudio.google.com')}
-        >
-          <ThemedText style={styles.helpText}>¿Cómo consigo una API Key?</ThemedText>
-        </TouchableOpacity>
-      </ScrollView>
-    </ThemedView>
+        </ScrollView>
+      </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 

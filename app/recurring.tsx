@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, View, ScrollView, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, View, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -118,18 +118,26 @@ export default function RecurringScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, dynamicStyles.container]}>
-      <View style={[styles.header, dynamicStyles.header]}>
-        <TouchableOpacity onPress={() => router.back()} style={[styles.closeButton, dynamicStyles.iconBg]}>
-          <IconSymbol name="chevron.right" size={24} color="#64748B" style={{ transform: [{ rotate: '180deg' }] }} />
-        </TouchableOpacity>
-        <ThemedText style={[styles.title, dynamicStyles.textMain]}>Configuración</ThemedText>
-        <TouchableOpacity onPress={() => setShowAdd(!showAdd)} style={[styles.plusButton, dynamicStyles.itemIconBg]}>
-          <IconSymbol name="plus" size={24} color="#6366F1" />
-        </TouchableOpacity>
-      </View>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      style={{ flex: 1 }}
+    >
+      <ThemedView style={[styles.container, dynamicStyles.container]}>
+        <View style={[styles.header, dynamicStyles.header]}>
+          <TouchableOpacity onPress={() => router.back()} style={[styles.closeButton, dynamicStyles.iconBg]}>
+            <IconSymbol name="chevron.right" size={24} color="#64748B" style={{ transform: [{ rotate: '180deg' }] }} />
+          </TouchableOpacity>
+          <ThemedText style={[styles.title, dynamicStyles.textMain]}>Configuración</ThemedText>
+          <TouchableOpacity onPress={() => setShowAdd(!showAdd)} style={[styles.plusButton, dynamicStyles.itemIconBg]}>
+            <IconSymbol name="plus" size={24} color="#6366F1" />
+          </TouchableOpacity>
+        </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Configuración de Día de Reseteo */}
         <View style={[styles.settingsCard, dynamicStyles.card]}>
           <View style={[styles.settingsIcon, dynamicStyles.itemIconBg]}>
@@ -297,8 +305,9 @@ export default function RecurringScreen() {
         </View>
 
         <View style={{ height: 40 }} />
-      </ScrollView>
-    </ThemedView>
+        </ScrollView>
+      </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 
