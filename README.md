@@ -4,12 +4,13 @@ Tu gestor de finanzas personales personalizable y privado. Controla tus gastos, 
 
 ## ✨ Características
 
-- 🌓 **Modo Oscuro/Claro:** Cambia el estilo de la app con un solo toque.
-- 🔄 **Ciclos de Reseteo:** Configura el día del mes en que tu balance vuelve a empezar (ideal para días de cobro).
-- 📅 **Ingresos y Gastos Recurrentes:** Gestiona nóminas, alquileres o suscripciones con fechas de fin automáticas.
-- 📊 **Gráficos Dinámicos:** Visualización clara de cuánto tienes disponible frente a lo gastado.
-- 📜 **Historial Completo:** Accede a los balances de meses pasados y revisa cada detalle.
-- 🛠 **Zona de Peligro:** Opción para resetear todos los datos de la aplicación de forma segura.
+- 🌓 **Modo Oscuro/Claro:** Diferentes temas para tu flujo de trabajo.
+- 🤖 **Asistente IA (Gemini/Local):** Un chat inteligente conectado a tus finanzas. Pregúntale en qué gastas más hoy o cómo ahorrar para el mes que viene. Compatible con Google Gemini 2.0 y modelos locales (LMStudio).
+- 🔄 **Ciclos de Reseteo:** Configura el día de cobro para reiniciar tu balance automáticamente.
+- 📅 **Recurrentes:** Controla suscripciones y pagos fijos con cálculo de periodos restantes.
+- 📊 **Análisis Personalizado:** Visualización dinámica de ingresos vs gastos.
+- 📜 **Historial:** Revisa meses pasados para entender tu evolución financiera.
+- 🛠 **Privacidad Total:** Tus datos se guardan en tu dispositivo y tus API Keys son privadas.
 
 ## 🚀 Cómo Compilar
 
