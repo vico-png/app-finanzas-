@@ -41,7 +41,7 @@ class FinanceStore {
     apiKey: '',
     provider: 'gemini',
     baseUrl: 'http://localhost:1234/v1',
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
   };
   private chatHistory: ChatMessage[] = [];
 
