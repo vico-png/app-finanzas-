@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 100, // Subido de 30 a 100 para evitar la barra inferior
     right: 30,
     width: 64,
     height: 64,
@@ -444,6 +444,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
+    zIndex: 99, // Asegurar que esté por encima de todo
   },
   emptyContainer: {
     alignItems: 'center',
