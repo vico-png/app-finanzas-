@@ -31,6 +31,14 @@ export default function HomeScreen() {
 
   const { movements, incomeTotal, expenseTotal, available, cycleStart, cycleEnd } = data;
   
+  const recurringIncomeTotal = movements
+    .filter((m: any) => m.isRecurring && m.type === 'income')
+    .reduce((sum: number, m: any) => sum + m.amount, 0);
+
+  const recurringExpenseTotal = movements
+    .filter((m: any) => m.isRecurring && m.type === 'expense')
+    .reduce((sum: number, m: any) => sum + m.amount, 0);
+
   const totalSlots = incomeTotal + expenseTotal;
   const incomePercentage = totalSlots === 0 ? 0 : incomeTotal / totalSlots; 
   const expensePercentage = totalSlots === 0 ? 0 : expenseTotal / totalSlots; 
@@ -175,12 +183,12 @@ export default function HomeScreen() {
         {/* Summary Cards */}
         <View style={styles.summaryRow}>
           <View style={[styles.summaryCard, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5' }]}>
-            <ThemedText style={[styles.summaryTitle, { color: isDark ? '#34D399' : '#065F46' }]}>Ingresos</ThemedText>
-            <ThemedText style={[styles.summaryAmount, { color: isDark ? '#10B981' : '#059669' }]}>{`+${incomeTotal}€`}</ThemedText>
+            <ThemedText style={[styles.summaryTitle, { color: isDark ? '#34D399' : '#065F46' }]}>Ingresos recurrentes</ThemedText>
+            <ThemedText style={[styles.summaryAmount, { color: isDark ? '#10B981' : '#059669' }]}>{`+${maskAmount(recurringIncomeTotal)}`}</ThemedText>
           </View>
           <View style={[styles.summaryCard, { backgroundColor: isDark ? '#7F1D1D' : '#FEF2F2' }]}>
-            <ThemedText style={[styles.summaryTitle, { color: isDark ? '#FCA5A5' : '#991B1B' }]}>Gastos</ThemedText>
-            <ThemedText style={[styles.summaryAmount, { color: isDark ? '#EF4444' : '#DC2626' }]}>{`-${expenseTotal}€`}</ThemedText>
+            <ThemedText style={[styles.summaryTitle, { color: isDark ? '#FCA5A5' : '#991B1B' }]}>Gastos recurrentes</ThemedText>
+            <ThemedText style={[styles.summaryAmount, { color: isDark ? '#EF4444' : '#DC2626' }]}>{`-${maskAmount(recurringExpenseTotal)}`}</ThemedText>
           </View>
         </View>
 
@@ -367,17 +375,17 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    padding: 20,
-    borderRadius: 20,
+    padding: 15,
+    borderRadius: 16,
     justifyContent: 'center',
   },
   summaryTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   summaryAmount: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
   },
   transactionsHeader: {
