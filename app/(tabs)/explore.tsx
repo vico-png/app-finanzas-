@@ -152,15 +152,16 @@ export default function ChatScreen() {
       </View>
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <ScrollView 
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           onContentSizeChange={scrollToBottom}
+          keyboardShouldPersistTaps="handled"
         >
           {messages.length === 0 && (
               <View style={styles.welcomeContainer}>
@@ -207,8 +208,8 @@ export default function ChatScreen() {
             <IconSymbol name="paperplane.fill" size={20} color="white" />
           </TouchableOpacity>
         </View>
-        <View style={{ height: 80 }} /> {/* Space for tab bar */}
       </KeyboardAvoidingView>
+      <View style={{ height: 80 }} /> {/* Espacio para la barra de navegación */}
     </ThemedView>
   );
 }

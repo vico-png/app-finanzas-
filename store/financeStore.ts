@@ -294,8 +294,8 @@ class FinanceStore {
 
   addChatMessage(msg: ChatMessage) {
     this.chatHistory = [...this.chatHistory, msg];
-    // Keep last 50 messages
-    if (this.chatHistory.length > 50) this.chatHistory.shift();
+    // Keep last 20 messages to save quota/tokens
+    if (this.chatHistory.length > 20) this.chatHistory.shift();
     this.saveData();
     this.notify();
   }

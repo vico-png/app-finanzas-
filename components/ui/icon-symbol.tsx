@@ -22,6 +22,12 @@ const MAPPING = {
   'arrow.up.right': 'north-east',
   'arrow.down.left': 'south-west',
   'plus': 'add',
+  'sparkles': 'auto-awesome',
+  'sun.max.fill': 'wb-sunny',
+  'moon.fill': 'dark-mode',
+  'trash.fill': 'delete',
+  'gearshape.fill': 'settings',
+  'checkmark': 'check',
 } as IconMapping;
 
 /**
