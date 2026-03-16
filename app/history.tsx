@@ -12,13 +12,21 @@ export default function HistoryScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [history, setHistory] = useState(store.getPastMonthsHistory());
+  const [privacyMode, setPrivacyMode] = useState(store.isPrivacyMode());
 
   useEffect(() => {
     const unsub = store.subscribe(() => {
       setHistory(store.getPastMonthsHistory());
+      setPrivacyMode(store.isPrivacyMode());
     });
     return unsub;
   }, []);
+
+  const maskAmount = (val: number | null) => {
+    if (val === null) return '-';
+    if (privacyMode) return '****';
+    return (val >= 0 ? '+' : '') + val.toFixed(0) + '€';
+  };
 
   const dynamicStyles = {
     container: { backgroundColor: isDark ? '#0F172A' : '#F8FAFC' },
@@ -61,7 +69,7 @@ export default function HistoryScreen() {
               </View>
               <View style={styles.amountContainer}>
                 <ThemedText style={[styles.balanceAmount, { color: h.balance >= 0 ? '#10B981' : '#EF4444' }]}>
-                  {h.balance >= 0 ? '+' : ''}{h.balance}€
+                  {maskAmount(h.balance)}
                 </ThemedText>
                 <View style={[styles.badge, { backgroundColor: h.balance >= 0 ? (isDark ? '#064E3B' : '#ECFDF5') : (isDark ? '#450A0A' : '#FEF2F2') }]}>
                    <ThemedText style={[styles.badgeText, { color: h.balance >= 0 ? '#10B981' : '#EF4444' }]}>

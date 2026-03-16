@@ -12,18 +12,28 @@ export default function DetailsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { index } = useLocalSearchParams<{ index: string }>();
-  const cycleIndex = parseInt(index || '0');
+  const indexNum = parseInt(index || '0');
   
-  const [data, setData] = useState(store.getCycleData(cycleIndex));
+  const [data, setData] = useState(store.getCycleData(indexNum));
+  const [privacyMode, setPrivacyMode] = useState(store.isPrivacyMode());
 
   useEffect(() => {
+    setData(store.getCycleData(indexNum));
+    setPrivacyMode(store.isPrivacyMode());
     const unsub = store.subscribe(() => {
-      setData(store.getCycleData(cycleIndex));
+      setData(store.getCycleData(indexNum));
+      setPrivacyMode(store.isPrivacyMode());
     });
     return unsub;
-  }, [cycleIndex]);
+  }, [indexNum]);
 
   const { movements, incomeTotal, expenseTotal, available, cycleStart, cycleEnd } = data;
+
+  const maskAmount = (val: number | null) => {
+    if (val === null) return '-';
+    if (privacyMode) return '****';
+    return val.toFixed(0) + '€';
+  };
 
   const formatDate = (date: number) => {
     return new Date(date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
@@ -55,13 +65,17 @@ export default function DetailsScreen() {
 
       <View style={[styles.summaryStrip, dynamicStyles.header, { borderBottomWidth: 1, borderBottomColor: dynamicStyles.border.borderBottomColor }]}>
         <View style={styles.summaryItem}>
-          <ThemedText style={styles.summaryLabel}>INGRESOS</ThemedText>
-          <ThemedText style={[styles.summaryValue, { color: '#10B981' }]}>+{incomeTotal}€</ThemedText>
+          <ThemedText style={styles.summaryLabel}>DISPONIBLE</ThemedText>
+          <ThemedText style={[styles.summaryValue, { color: available >= 0 ? '#10B981' : '#EF4444' }]}>
+            {maskAmount(available)}
+          </ThemedText>
         </View>
         <View style={[styles.summaryDivider, { backgroundColor: dynamicStyles.border.borderBottomColor }]} />
         <View style={styles.summaryItem}>
-          <ThemedText style={styles.summaryLabel}>GASTOS</ThemedText>
-          <ThemedText style={[styles.summaryValue, { color: '#EF4444' }]}>-{expenseTotal}€</ThemedText>
+          <ThemedText style={styles.summaryLabel}>GASTADO</ThemedText>
+          <ThemedText style={[styles.summaryValue, dynamicStyles.textMain]}>
+            {maskAmount(expenseTotal)}
+          </ThemedText>
         </View>
       </View>
 
@@ -72,33 +86,33 @@ export default function DetailsScreen() {
             <ThemedText style={styles.emptyText}>No hay movimientos en este periodo</ThemedText>
           </View>
         ) : (
-          movements.map((t) => (
-            <View key={t.id} style={[styles.transactionItem, dynamicStyles.card]}>
-              <View style={[styles.categoryIcon, { backgroundColor: t.type === 'income' ? (isDark ? '#064E3B' : '#ECFDF5') : (isDark ? '#450A0A' : '#FEF2F2') }]}>
+          movements.map((move) => (
+            <View key={move.id} style={[styles.transactionItem, dynamicStyles.card]}>
+              <View style={[styles.categoryIcon, { backgroundColor: move.type === 'income' ? (isDark ? '#064E3B' : '#ECFDF5') : (isDark ? '#450A0A' : '#FEF2F2') }]}>
                 <IconSymbol 
-                  name={t.type === 'income' ? 'arrow.up.right' : 'arrow.down.left'} 
+                  name={move.type === 'income' ? 'arrow.up.right' : 'arrow.down.left'} 
                   size={18} 
-                  color={t.type === 'income' ? '#10B981' : '#EF4444'} 
+                  color={move.type === 'income' ? '#10B981' : '#EF4444'} 
                 />
               </View>
               <View style={styles.transactionInfo}>
-                <ThemedText style={[styles.transactionTitle, dynamicStyles.textMain]}>{t.title}</ThemedText>
+                <ThemedText style={[styles.transactionTitle, dynamicStyles.textMain]}>{move.title}</ThemedText>
                 <ThemedText style={styles.transactionCategory}>
-                  {t.isRecurring ? 'Recurrente' : formatDate(t.date)}
+                  {move.isRecurring ? 'Recurrente' : formatDate(move.date)}
                 </ThemedText>
               </View>
-              <ThemedText style={[styles.transactionAmount, { color: t.type === 'income' ? '#10B981' : '#EF4444' }]}>
-                {t.type === 'income' ? '+' : '-'}{t.amount}€
-              </ThemedText>
+                <ThemedText style={[styles.transactionAmount, { color: move.type === 'income' ? '#10B981' : '#EF4444' }]}>
+                  {move.type === 'income' ? '+' : '-'}{maskAmount(move.amount)}
+                </ThemedText>
             </View>
           ))
         )}
       </ScrollView>
 
-      <View style={[styles.bottomBalance, dynamicStyles.header, { borderTopWidth: 1, borderTopColor: dynamicStyles.border.borderTopColor }]}>
-        <ThemedText style={styles.balanceLabel}>RESULTADO FINAL</ThemedText>
+      <View style={[styles.bottomBalance, dynamicStyles.card, { borderTopWidth: 1, borderTopColor: dynamicStyles.border.borderBottomColor }]}>
+        <ThemedText style={styles.balanceLabel}>BALANCE TOTAL DEL CICLO</ThemedText>
         <ThemedText style={[styles.balanceValue, { color: available >= 0 ? '#10B981' : '#EF4444' }]}>
-          {available >= 0 ? '+' : ''}{available}€
+          {maskAmount(available)}
         </ThemedText>
       </View>
     </ThemedView>

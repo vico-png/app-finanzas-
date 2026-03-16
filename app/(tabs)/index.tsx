@@ -14,12 +14,14 @@ export default function HomeScreen() {
   const [data, setData] = useState(store.getCurrentMonthData());
   const [history, setHistory] = useState(store.getPastMonthsHistory());
   const [appTheme, setAppTheme] = useState(store.getTheme());
+  const [privacyMode, setPrivacyMode] = useState(store.isPrivacyMode());
 
   useEffect(() => {
     const unsub = store.subscribe(() => {
       setData(store.getCurrentMonthData());
       setHistory(store.getPastMonthsHistory());
       setAppTheme(store.getTheme());
+      setPrivacyMode(store.isPrivacyMode());
     });
     return unsub;
   }, []);
@@ -63,6 +65,22 @@ export default function HomeScreen() {
     store.setTheme(next);
   };
 
+  const togglePrivacy = () => {
+    store.togglePrivacyMode();
+  };
+
+  const maskValue = (val: number | string) => {
+    if (privacyMode) return '****';
+    if (typeof val === 'number') return val.toFixed(0) + '€';
+    return val;
+  };
+
+  const maskAmount = (val: number | null) => {
+    if (val === null) return '-';
+    if (privacyMode) return '****';
+    return val.toFixed(0) + '€';
+  };
+
   // Theme-aware styles
   const dynamicStyles = {
     container: { backgroundColor: isDark ? '#0F172A' : '#F8FAFC' },
@@ -78,9 +96,15 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={[styles.themeButton, dynamicStyles.card]} onPress={toggleTheme}>
-             <IconSymbol name={isDark ? "sun.max.fill" : "moon.fill"} size={20} color={isDark ? "#FACC15" : "#6366F1"} />
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity style={[styles.themeButton, dynamicStyles.card]} onPress={toggleTheme}>
+               <IconSymbol name={isDark ? "sun.max.fill" : "moon.fill"} size={20} color={isDark ? "#FACC15" : "#6366F1"} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.themeButton, dynamicStyles.card, { marginLeft: 10 }]} onPress={togglePrivacy}>
+               <IconSymbol name={privacyMode ? "eye.slash.fill" : "eye.fill"} size={20} color="#64748B" />
+            </TouchableOpacity>
+          </View>
           
           <View style={{ flex: 1, alignItems: 'center' }}>
             <ThemedText style={[styles.greeting, dynamicStyles.textMain]}>Bienvenido 👋</ThemedText>
@@ -135,14 +159,14 @@ export default function HomeScreen() {
             <View style={styles.cycleTotalItem}>
               <ThemedText style={styles.availableLabel}>Disponible</ThemedText>
               <ThemedText style={[styles.availableAmount, { color: available >= 0 ? '#10B981' : '#EF4444' }]}>
-                {available.toFixed(0)}€
+                {maskAmount(available)}
               </ThemedText>
             </View>
             <View style={[styles.cycleTotalDivider, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]} />
             <View style={styles.cycleTotalItem}>
               <ThemedText style={styles.availableLabel}>Gastado</ThemedText>
               <ThemedText style={[styles.availableAmount, dynamicStyles.textMain]}>
-                {expenseTotal.toFixed(0)}€
+                {maskAmount(expenseTotal)}
               </ThemedText>
             </View>
           </View>
@@ -191,7 +215,7 @@ export default function HomeScreen() {
                   </ThemedText>
                 </View>
                 <ThemedText style={[styles.transactionAmount, { color: t.type === 'income' ? '#10B981' : '#EF4444' }]}>
-                  {t.type === 'income' ? '+' : '-'}{t.amount}€
+                  {t.type === 'income' ? '+' : '-'}{maskAmount(t.amount)}
                 </ThemedText>
               </View>
             ))
@@ -221,9 +245,9 @@ export default function HomeScreen() {
                 onPress={() => router.push({ pathname: '/details', params: { index: h.index.toString() } })}
               >
                 <ThemedText style={styles.historyMonth}>{h.month.toUpperCase()}</ThemedText>
-                <ThemedText style={[styles.historyBalance, { color: h.balance >= 0 ? '#10B981' : '#EF4444' }]}>
-                  {h.balance >= 0 ? '+' : ''}{h.balance}€
-                </ThemedText>
+                  <ThemedText style={[styles.historyBalance, { color: h.balance >= 0 ? '#10B981' : '#EF4444' }]}>
+                    {maskAmount(h.balance)}
+                  </ThemedText>
                 <ThemedText style={styles.historyStatus}>{h.balance >= 0 ? 'AHORRO' : 'DÉFICIT'}</ThemedText>
               </TouchableOpacity>
             ))}
@@ -253,7 +277,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 25,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   themeButton: {
     width: 44,

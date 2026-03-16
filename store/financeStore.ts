@@ -37,6 +37,7 @@ class FinanceStore {
   private listeners: (() => void)[] = [];
   private payDay: number = 1;
   private theme: 'light' | 'dark' | 'auto' = 'auto';
+  private privacyMode: boolean = false;
   private aiSettings: AISettings = {
     apiKey: '',
     provider: 'gemini',
@@ -55,6 +56,7 @@ class FinanceStore {
       const recData = await AsyncStorage.getItem('recurring');
       const payDayData = await AsyncStorage.getItem('payDay');
       const themeData = await AsyncStorage.getItem('theme');
+      const privacyData = await AsyncStorage.getItem('privacyMode');
       const aiData = await AsyncStorage.getItem('aiSettings');
       const chatData = await AsyncStorage.getItem('chatHistory');
       
@@ -62,6 +64,7 @@ class FinanceStore {
       if (recData) this.recurring = JSON.parse(recData);
       if (payDayData) this.payDay = parseInt(payDayData);
       if (themeData) this.theme = themeData as 'light' | 'dark' | 'auto';
+      if (privacyData) this.privacyMode = JSON.parse(privacyData);
       if (aiData) this.aiSettings = JSON.parse(aiData);
       if (chatData) this.chatHistory = JSON.parse(chatData);
       this.notify();
@@ -76,6 +79,7 @@ class FinanceStore {
       await AsyncStorage.setItem('recurring', JSON.stringify(this.recurring));
       await AsyncStorage.setItem('payDay', this.payDay.toString());
       await AsyncStorage.setItem('theme', this.theme);
+      await AsyncStorage.setItem('privacyMode', JSON.stringify(this.privacyMode));
       await AsyncStorage.setItem('aiSettings', JSON.stringify(this.aiSettings));
       await AsyncStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
     } catch (e) {
@@ -109,6 +113,7 @@ class FinanceStore {
       this.transactions = [];
       this.recurring = [];
       this.payDay = 1;
+      this.privacyMode = false;
       this.chatHistory = [];
       this.notify();
     } catch (e) {
@@ -125,6 +130,16 @@ class FinanceStore {
 
   private notify() {
     this.listeners.forEach(l => l());
+  }
+
+  isPrivacyMode() {
+    return this.privacyMode;
+  }
+
+  togglePrivacyMode() {
+    this.privacyMode = !this.privacyMode;
+    this.saveData();
+    this.notify();
   }
 
   addTransaction(t: Omit<Transaction, 'id' | 'date'>) {

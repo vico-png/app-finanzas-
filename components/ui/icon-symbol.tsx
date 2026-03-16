@@ -28,6 +28,8 @@ const MAPPING = {
   'trash.fill': 'delete',
   'gearshape.fill': 'settings',
   'checkmark': 'check',
+  'eye.fill': 'visibility',
+  'eye.slash.fill': 'visibility-off',
 } as IconMapping;
 
 /**

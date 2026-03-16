@@ -15,6 +15,7 @@ export default function RecurringScreen() {
   const [items, setItems] = useState<RecurringItem[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [payDay, setPayDay] = useState(store.getPayDay().toString());
+  const [privacyMode, setPrivacyMode] = useState(store.isPrivacyMode());
   
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [title, setTitle] = useState('');
@@ -26,12 +27,20 @@ export default function RecurringScreen() {
 
   useEffect(() => {
     setItems(store.getRecurring());
+    setPrivacyMode(store.isPrivacyMode());
     const unsub = store.subscribe(() => {
       setItems(store.getRecurring());
       setPayDay(store.getPayDay().toString());
+      setPrivacyMode(store.isPrivacyMode());
     });
     return unsub;
   }, []);
+
+  const maskAmount = (val: number | null) => {
+    if (val === null) return '-';
+    if (privacyMode) return '****';
+    return val.toFixed(0) + '€';
+  };
 
   const handleUpdatePayDay = (val: string) => {
     const d = parseInt(val);
@@ -66,8 +75,8 @@ export default function RecurringScreen() {
   };
 
   const handleAdd = () => {
-    if (!title || !amount || !day) {
-      Alert.alert('Error', 'Por favor completa todos los campos principales');
+    if (!amount || !day) {
+      Alert.alert('Error', 'Por favor indica al menos la cantidad y el día');
       return;
     }
     const dayNum = parseInt(day);
@@ -77,7 +86,7 @@ export default function RecurringScreen() {
     }
 
     store.addRecurring({
-      title,
+      title: title.trim() || 'Sin descripción',
       amount: parseFloat(amount),
       type,
       day: dayNum,
@@ -263,12 +272,12 @@ export default function RecurringScreen() {
                   <ThemedText style={styles.itemDay}>Día {item.day} de cada mes</ThemedText>
                   {item.endMonth && item.endYear && (
                     <ThemedText style={[styles.itemRemaining, { backgroundColor: isDark ? '#312E81' : '#EEF2FF', color: isDark ? '#C7D2FE' : '#6366F1' }]}>
-                      Quedan por pagar: <ThemedText style={{ fontWeight: '700' }}>{store.getRemainingTotal(item)}€</ThemedText>
+                      Quedan por pagar: <ThemedText style={{ fontWeight: '700' }}>{maskAmount(store.getRemainingTotal(item))}</ThemedText>
                     </ThemedText>
                   )}
                 </View>
                 <ThemedText style={[styles.itemAmount, { color: item.type === 'income' ? '#10B981' : '#EF4444' }]}>
-                  {item.type === 'income' ? '+' : '-'}{item.amount}€
+                  {item.type === 'income' ? '+' : '-'}{maskAmount(item.amount)}
                 </ThemedText>
                 <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
                   <IconSymbol name="plus" size={16} color="#CBD5E1" style={{ transform: [{ rotate: '45deg' }] }} />
