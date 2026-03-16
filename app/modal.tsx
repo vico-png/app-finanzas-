@@ -17,11 +17,11 @@ export default function ModalScreen() {
   const [description, setDescription] = useState('');
 
   const handleSave = () => {
-    if (!amount || !description) return;
+    if (!amount) return;
     store.addTransaction({
       type,
       amount: parseFloat(amount),
-      title: description,
+      title: description.trim() || 'Sin descripción',
     });
     router.back();
   };
